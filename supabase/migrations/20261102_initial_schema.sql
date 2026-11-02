@@ -3,11 +3,13 @@
 
 -- 1. PROFILES
 CREATE TABLE IF NOT EXISTS public.profiles (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT UNIQUE NOT NULL,
     full_name TEXT NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('retailer', 'order_desk')),
+    mobile_number TEXT,
     phone TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

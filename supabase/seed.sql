@@ -2,12 +2,12 @@
 -- Contains the exact brief-required catalogue items, realistic Jabalpur kirana shops, and demo profiles
 
 -- 1. Profiles for Demo
--- Retailer Demo Account
-INSERT INTO public.profiles (id, email, full_name, role, phone)
+-- Retailer Demo Account & Order Desk Demo Account
+INSERT INTO public.profiles (id, email, full_name, role, phone, mobile_number, is_active)
 VALUES 
-  ('11111111-1111-1111-1111-111111111111', 'retailer@ordersaathi.in', 'Rajesh Sharma', 'retailer', '+91 98261 12345'),
-  ('22222222-2222-2222-2222-222222222222', 'orderdesk@ordersaathi.in', 'Vikram Patel', 'order_desk', '+91 98261 67890'),
-  ('33333333-3333-3333-3333-333333333333', 'sharda@ordersaathi.in', 'Sunil Kumar Agrawal', 'retailer', '+91 94251 44556')
+  ('11111111-1111-1111-1111-111111111111', 'retailer@ordersaathi.demo', 'Rajesh Sharma', 'retailer', '+91 98261 12345', '+919826112345', TRUE),
+  ('22222222-2222-2222-2222-222222222222', 'desk@ordersaathi.demo', 'Vikram Patel', 'order_desk', '+91 98261 67890', '+919826167890', TRUE),
+  ('33333333-3333-3333-3333-333333333333', 'sharda@ordersaathi.demo', 'Sunil Kumar Agrawal', 'retailer', '+91 94251 44556', '+919425144556', TRUE)
 ON CONFLICT (id) DO NOTHING;
 
 -- 2. Retailer Records (Jabalpur kirana stores)

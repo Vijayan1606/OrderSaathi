@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useCart } from "@/lib/cart/cart-context";
 import {
@@ -15,20 +15,38 @@ import {
   Store,
   ChevronDown,
   User,
+  LogOut,
   Menu,
   X,
   CreditCard,
   Building2,
+  FileText,
+  Settings,
+  ShieldAlert,
 } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
-  const { role, switchRole, profile, retailer } = useAuth();
+  const router = useRouter();
+  const { role, profile, retailer, logout, isAuthenticated } = useAuth();
   const { itemCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const isRetailer = role === "retailer";
+  const isDesk = role === "order_desk";
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   interface NavLinkItem {
     href: string;
@@ -38,23 +56,24 @@ export function Navbar() {
   }
 
   const retailerLinks: NavLinkItem[] = [
-    { href: "/", label: "Dashboard", icon: Layers },
-    { href: "/catalogue", label: "Catalogue", icon: ShoppingBag },
-    { href: "/ai-order", label: "AI Order Capture", icon: Sparkles, badge: "AI" },
-    { href: "/orders", label: "My Orders", icon: Clock },
+    { href: "/retailer/dashboard", label: "Dashboard", icon: Layers },
+    { href: "/retailer/catalogue", label: "Catalogue", icon: ShoppingBag },
+    { href: "/retailer/ai-order", label: "AI Order Capture", icon: Sparkles, badge: "AI" },
+    { href: "/retailer/orders", label: "My Orders", icon: Clock },
   ];
 
   const orderDeskLinks: NavLinkItem[] = [
-    { href: "/order-desk", label: "Operations Desk", icon: Layers },
-    { href: "/order-desk/orders", label: "Review Orders", icon: ShieldCheck },
-    { href: "/order-desk/export", label: "Tally CSV Export", icon: FileSpreadsheet },
+    { href: "/desk/dashboard", label: "Operations Desk", icon: Layers },
+    { href: "/desk/orders", label: "Review Orders", icon: ShieldCheck },
+    { href: "/desk/exports", label: "Tally CSV Export", icon: FileSpreadsheet },
+    { href: "/desk/audit-logs", label: "Audit Logs", icon: FileText },
   ];
 
-  const navLinks = isRetailer ? retailerLinks : orderDeskLinks;
+  const navLinks = isRetailer ? retailerLinks : isDesk ? orderDeskLinks : [];
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[#E5EEE8] bg-[#FFFFFF]/95 backdrop-blur supports-[backdrop-filter]:bg-[#FFFFFF]/80">
-      {/* Top Banner: Jabalpur Distribution Network & Role Switcher */}
+      {/* Top Banner: Authenticated Hub Status */}
       <div className="bg-[#173F35] text-white text-xs px-4 py-1.5 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Building2 className="w-3.5 h-3.5 text-[#E9A83B]" />
@@ -63,40 +82,43 @@ export function Navbar() {
           </span>
         </div>
 
-        {/* Quick Role Toggle Bar for Reviewers & Users */}
-        <div className="flex items-center gap-2">
-          <span className="text-[#cbded2] hidden sm:inline">Active Mode:</span>
-          <div className="inline-flex rounded-md bg-[#244d3e] p-0.5 border border-[#487d65]">
-            <button
-              onClick={() => switchRole("retailer")}
-              className={`px-2.5 py-0.5 rounded text-xs font-semibold transition-all ${
-                isRetailer
-                  ? "bg-[#E9A83B] text-[#202923] shadow-sm"
-                  : "text-white/80 hover:text-white"
-              }`}
-            >
-              Retailer View
-            </button>
-            <button
-              onClick={() => switchRole("order_desk")}
-              className={`px-2.5 py-0.5 rounded text-xs font-semibold transition-all ${
-                !isRetailer
-                  ? "bg-[#E9A83B] text-[#202923] shadow-sm"
-                  : "text-white/80 hover:text-white"
-              }`}
-            >
-              Order Desk View
-            </button>
+        {/* User Session Info / Role Badge */}
+        {isAuthenticated && profile ? (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-[#cbded2] hidden sm:inline">Signed in as:</span>
+            <span className="font-bold text-[#E9A83B]">{profile.full_name}</span>
+            <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-white/10 text-white border border-white/20">
+              {role === "order_desk" ? "Order Desk" : "Retailer"}
+            </span>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center gap-2 text-xs">
+            <Link
+              href="/retailer/login"
+              className="text-[#E9A83B] hover:text-white font-semibold transition-colors"
+            >
+              Retailer Login
+            </Link>
+            <span>•</span>
+            <Link
+              href="/desk/login"
+              className="text-[#cbded2] hover:text-white font-semibold transition-colors"
+            >
+              Desk Sign In
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Main Navbar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo & Tagline */}
+          {/* Logo & Brand */}
           <div className="flex items-center gap-8">
-            <Link href={isRetailer ? "/" : "/order-desk"} className="flex items-center gap-2.5">
+            <Link
+              href={isRetailer ? "/retailer/dashboard" : isDesk ? "/desk/dashboard" : "/login"}
+              className="flex items-center gap-2.5"
+            >
               <div className="w-10 h-10 rounded-xl bg-[#173F35] flex items-center justify-center text-white font-bold text-xl shadow-md border border-[#E9A83B]/30">
                 <span className="text-[#E9A83B]">O</span>S
               </div>
@@ -138,7 +160,7 @@ export function Navbar() {
             </nav>
           </div>
 
-          {/* Right Section: Shop info, Cart, Account */}
+          {/* Right Section: Shop info, Cart, Account Profile Dropdown */}
           <div className="flex items-center gap-3">
             {isRetailer && retailer && (
               <div className="hidden lg:flex flex-col items-end mr-2 text-right">
@@ -156,17 +178,17 @@ export function Navbar() {
               </div>
             )}
 
-            {!isRetailer && (
+            {isDesk && (
               <div className="hidden lg:flex items-center gap-2 bg-[#E5EEE8] px-3 py-1.5 rounded-lg text-xs font-semibold text-[#173F35]">
                 <ShieldCheck className="w-4 h-4 text-[#173F35]" />
-                <span>Desk Agent: Vikram Patel</span>
+                <span>Desk Agent: {profile?.full_name || "Vikram Patel"}</span>
               </div>
             )}
 
             {/* Shopping Cart button (for Retailer) */}
             {isRetailer && (
               <Link
-                href="/cart"
+                href="/retailer/cart"
                 className="relative inline-flex items-center justify-center p-2 rounded-xl bg-[#E5EEE8] hover:bg-[#c2d9cb] text-[#173F35] transition-colors"
                 aria-label="View Cart"
               >
@@ -176,6 +198,108 @@ export function Navbar() {
                     {itemCount}
                   </span>
                 )}
+              </Link>
+            )}
+
+            {/* Authenticated User Profile Menu Dropdown */}
+            {isAuthenticated && profile ? (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-2 rounded-xl border border-[#cbded2] bg-[#F8F8F3] hover:bg-[#E5EEE8] transition-colors text-xs font-bold text-[#173F35]"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-[#173F35] text-white flex items-center justify-center font-bold text-xs">
+                    {profile.full_name.charAt(0)}
+                  </div>
+                  <span className="hidden sm:inline">{profile.full_name}</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-[#7B857E]" />
+                </button>
+
+                {profileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl border border-[#cbded2] shadow-float p-3 space-y-2 z-50 animate-in fade-in zoom-in-95">
+                    {/* User Profile Header */}
+                    <div className="p-3 bg-[#F8F8F3] rounded-xl space-y-1">
+                      <p className="font-bold text-sm text-[#173F35]">{profile.full_name}</p>
+                      <p className="text-xs text-[#7B857E]">{profile.email}</p>
+                      <div className="pt-1 flex items-center justify-between">
+                        <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-[#173F35] text-[#E9A83B]">
+                          {profile.role.replace("_", " ")}
+                        </span>
+                        {retailer && (
+                          <span className="text-[11px] font-semibold text-emerald-800">
+                            Credit: ₹{(retailer.credit_limit - retailer.outstanding_balance).toLocaleString("en-IN")}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Account Links */}
+                    <div className="space-y-1 text-xs">
+                      {isRetailer ? (
+                        <>
+                          <Link
+                            href="/retailer/profile"
+                            onClick={() => setProfileDropdownOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg font-semibold text-[#576059] hover:bg-[#F8F8F3] hover:text-[#173F35]"
+                          >
+                            <Store className="w-4 h-4 text-[#E9A83B]" />
+                            <span>Kirana Profile & Credit Limit</span>
+                          </Link>
+                          <Link
+                            href="/retailer/orders"
+                            onClick={() => setProfileDropdownOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg font-semibold text-[#576059] hover:bg-[#F8F8F3] hover:text-[#173F35]"
+                          >
+                            <Clock className="w-4 h-4 text-[#173F35]" />
+                            <span>My Order History</span>
+                          </Link>
+                        </>
+                      ) : (
+                        <>
+                          <Link
+                            href="/desk/audit-logs"
+                            onClick={() => setProfileDropdownOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg font-semibold text-[#576059] hover:bg-[#F8F8F3] hover:text-[#173F35]"
+                          >
+                            <FileText className="w-4 h-4 text-[#E9A83B]" />
+                            <span>Security & Audit Trail</span>
+                          </Link>
+                          <Link
+                            href="/desk/settings"
+                            onClick={() => setProfileDropdownOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg font-semibold text-[#576059] hover:bg-[#F8F8F3] hover:text-[#173F35]"
+                          >
+                            <Settings className="w-4 h-4 text-[#173F35]" />
+                            <span>Desk Configuration</span>
+                          </Link>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Logout Button */}
+                    <div className="pt-2 border-t border-[#E5EEE8]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileDropdownOpen(false);
+                          logout();
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg font-bold text-xs text-rose-600 hover:bg-rose-50 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Sign Out (End Session)</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="px-4 py-2 rounded-xl bg-[#173F35] text-white text-xs font-bold hover:bg-[#244d3e] transition-colors"
+              >
+                Sign In
               </Link>
             )}
 
@@ -231,6 +355,22 @@ export function Navbar() {
               </Link>
             );
           })}
+
+          {isAuthenticated && (
+            <div className="pt-2 border-t border-[#E5EEE8]">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  logout();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-rose-600 font-bold text-xs"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
     </header>

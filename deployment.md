@@ -82,21 +82,31 @@ The application is now running at `http://localhost:3000`.
 
 ---
 
-## 5. Demo Personas & Fast Role Switching
+## 5. Demo Personas & Authentication Credentials
 
-OrderSaathi includes a convenient **Role Switcher** in the top navigation header bar to effortlessly switch between portals:
+The application implements full Supabase Phone and Email authentication with documented demo test credentials:
 
-### A. Retailer Persona
-- **Name:** Rajesh Sharma
-- **Store:** Mahakaushal Kirana Store (Lordganj, Jabalpur)
-- **Credit Limit:** ₹75,000.00
-- **Outstanding:** ₹14,250.00
-- **Available Credit:** ₹60,750.00
+### A. Retailer Portal (Mobile Phone + OTP)
+- **Login URL:** `/retailer/login` (or `/login`)
+- **Registered Mobile:** `+91 98261 12345` (or `9826112345`)
+- **Test OTP Code:** `123456`
+- **Shopkeeper:** Rajesh Sharma — *Mahakaushal Kirana Store* (Lordganj, Jabalpur)
+- **Credit Line:** ₹75,000.00 (Available: ₹60,750.00)
+- **Target Dashboard:** `/retailer/dashboard`
 
-### B. Order Desk Persona
-- **Name:** Vikram Patel
-- **Title:** Distribution Operations Manager
-- **Desk:** Jabalpur FMCG Dispatch Control Desk
+### B. Order Desk Portal (Email + Password)
+- **Login URL:** `/desk/login`
+- **Employee Email:** `desk@ordersaathi.demo`
+- **Password:** `OrderSaathi@Desk2026`
+- **Desk Agent:** Vikram Patel — *Jabalpur FMCG Operations Control Desk*
+- **Target Dashboard:** `/desk/dashboard`
+
+> **Security Guardrails:**
+> - Retailer accounts cannot access `/desk/*` operations (blocked at middleware and API).
+> - Order Desk staff accounts cannot place orders as retailers.
+> - Unauthenticated requests to protected pages are redirected to the respective login portal.
+> - Role switching is completely removed from public view; role identity is sourced from verified database profiles.
+
 
 ---
 

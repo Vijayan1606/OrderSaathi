@@ -1,42 +1,73 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { Profile, Retailer, UserRole } from "@/types";
-import { db } from "@/lib/db";
+import { useRouter } from "next/navigation";
 
 interface AuthContextType {
-  profile: Profile;
-  retailer?: Retailer;
-  role: UserRole;
-  switchRole: (role: UserRole) => void;
+  profile: Profile | null;
+  retailer?: Retailer | null;
+  role: UserRole | null;
+  isAuthenticated: boolean;
   isLoading: boolean;
+  logout: () => Promise<void>;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [profile, setProfile] = useState<Profile>(db.getCurrentUser().profile);
-  const [retailer, setRetailer] = useState<Retailer | undefined>(
-    db.getCurrentUser().retailer
-  );
-  const [role, setRole] = useState<UserRole>(db.currentRole);
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [retailer, setRetailer] = useState<Retailer | null>(null);
+  const [role, setRole] = useState<UserRole | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const user = db.getCurrentUser();
-    setProfile(user.profile);
-    setRetailer(user.retailer);
-    setRole(db.currentRole);
+  const refreshSession = useCallback(async () => {
+    try {
+      const res = await fetch("/api/auth/me");
+      const json = await res.json();
+      if (json.authenticated && json.profile) {
+        setProfile(json.profile);
+        setRetailer(json.retailer || null);
+        setRole(json.role || json.profile.role);
+      } else {
+        setProfile(null);
+        setRetailer(null);
+        setRole(null);
+      }
+    } catch (err) {
+      console.warn("Failed to refresh session:", err);
+      setProfile(null);
+      setRetailer(null);
+      setRole(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const switchRole = (newRole: UserRole) => {
+  useEffect(() => {
+    refreshSession();
+  }, [refreshSession]);
+
+  const logout = async () => {
     setIsLoading(true);
-    db.switchRole(newRole);
-    const user = db.getCurrentUser();
-    setProfile(user.profile);
-    setRetailer(user.retailer);
-    setRole(newRole);
-    setIsLoading(false);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {
+      console.warn("Logout error:", e);
+    } finally {
+      setProfile(null);
+      setRetailer(null);
+      setRole(null);
+      setIsLoading(false);
+      // Clear any stored client cart
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("ordersaathi_cart");
+      }
+      router.push("/login");
+      router.refresh();
+    }
   };
 
   return (
@@ -45,8 +76,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profile,
         retailer,
         role,
-        switchRole,
+        isAuthenticated: Boolean(profile),
         isLoading,
+        logout,
+        refreshSession,
       }}
     >
       {children}
