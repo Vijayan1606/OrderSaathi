@@ -27,10 +27,17 @@ export default function TallyExportPage() {
   useEffect(() => {
     async function loadExportData() {
       try {
-        const ordRes = await fetch("/api/orders");
+        const [ordRes, expRes] = await Promise.all([
+          fetch("/api/orders"),
+          fetch("/api/desk/exports"),
+        ]);
         const ordJson = await ordRes.json();
+        const expJson = await expRes.json();
         if (ordJson.success) {
           setOrders(ordJson.orders);
+        }
+        if (expJson.success && expJson.history) {
+          setExportHistory(expJson.history);
         }
       } catch (e) {
         console.error("Failed to load export orders", e);
@@ -63,6 +70,18 @@ export default function TallyExportPage() {
     setDownloadNotice(
       `Tally CSV export file generated successfully for ${confirmedOrders.length} approved orders.`
     );
+
+    setTimeout(async () => {
+      try {
+        const expRes = await fetch("/api/desk/exports");
+        const expJson = await expRes.json();
+        if (expJson.success && expJson.history) {
+          setExportHistory(expJson.history);
+        }
+      } catch (err) {
+        console.error("Failed to refresh exports", err);
+      }
+    }, 1500);
     setTimeout(() => setDownloadNotice(null), 5000);
   };
 
@@ -216,6 +235,51 @@ export default function TallyExportPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Export History Log Table */}
+        <div className="bg-white rounded-2xl border border-[#cbded2] shadow-card overflow-hidden">
+          <div className="p-4 bg-[#F8F8F3] border-b border-[#E5EEE8] flex justify-between items-center text-xs">
+            <span className="font-bold text-[#173F35] uppercase tracking-wider flex items-center gap-2">
+              <History className="w-4 h-4 text-[#E9A83B]" />
+              <span>Historical Tally Export Audit Log ({exportHistory.length} files)</span>
+            </span>
+            <span className="text-[#7B857E]">Supabase Synced</span>
+          </div>
+
+          {exportHistory.length === 0 ? (
+            <div className="p-8 text-center text-[#7B857E] text-xs">
+              No previous export files recorded yet. Download a CSV file above to generate a record.
+            </div>
+          ) : (
+            <div className="divide-y divide-[#E5EEE8] text-xs">
+              {exportHistory.map((rec) => (
+                <div
+                  key={rec.id}
+                  className="p-4 hover:bg-[#F8F8F3] transition-colors flex items-center justify-between gap-4"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 font-mono font-bold text-[#173F35]">
+                      <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
+                      <span>{rec.file_name}</span>
+                    </div>
+                    <p className="text-[#7B857E]">
+                      {rec.order_count} orders exported • Value: ₹{rec.total_value.toLocaleString("en-IN")} • By: {rec.exported_by_name}
+                    </p>
+                  </div>
+                  <span className="text-[11px] text-[#7B857E] whitespace-nowrap">
+                    {new Date(rec.exported_at).toLocaleString("en-IN", {
+                      timeZone: "Asia/Kolkata",
+                      day: "2-digit",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
 

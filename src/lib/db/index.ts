@@ -15,12 +15,13 @@ import {
   Profile,
 } from "@/types";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
 export const supabase =
-  supabaseUrl && supabaseAnonKey
-    ? createClient(supabaseUrl, supabaseAnonKey)
+  supabaseUrl && (supabaseServiceRoleKey || supabaseAnonKey)
+    ? createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey!)
     : null;
 
 // Initial Seed Dataset (matching Supabase seed.sql and prompt brief)
@@ -90,11 +91,11 @@ const INITIAL_RETAILERS: Retailer[] = [
 
 const INITIAL_SCHEMES: Scheme[] = [
   {
-    id: "s1111111-1111-1111-1111-111111111111",
+    id: "e1111111-1111-1111-1111-111111111111",
     name: "Buy 10 Cases Get 1 Free",
     description: "Buy 10 cases of glucose biscuits and receive 1 free case",
     scheme_type: "buy_x_get_y",
-    eligible_product_ids: ["p1111111-1111-1111-1111-111111111111"],
+    eligible_product_ids: ["b1111111-1111-1111-1111-111111111111"],
     min_quantity: 10,
     free_quantity: 1,
     discount_percentage: 0,
@@ -103,11 +104,11 @@ const INITIAL_SCHEMES: Scheme[] = [
     is_active: true,
   },
   {
-    id: "s2222222-2222-2222-2222-222222222222",
+    id: "e2222222-2222-2222-2222-222222222222",
     name: "Bulk Slab Discount: 3% Off 5+ Cases",
     description: "Purchase 5 or more cases of Detergent powder to receive an instant 3% discount",
     scheme_type: "slab_discount",
-    eligible_product_ids: ["p2222222-2222-2222-2222-222222222222"],
+    eligible_product_ids: ["b2222222-2222-2222-2222-222222222222"],
     min_quantity: 5,
     free_quantity: 0,
     discount_percentage: 3.0,
@@ -119,11 +120,11 @@ const INITIAL_SCHEMES: Scheme[] = [
 
 const INITIAL_PRODUCTS: Product[] = [
   {
-    id: "p1111111-1111-1111-1111-111111111111",
+    id: "b1111111-1111-1111-1111-111111111111",
     sku: "SKU-BS-075",
     name: "Glucose biscuit 75 g",
     description: "High energy glucose biscuits fortified with wheat and milk. Fast moving daily staple.",
-    category_id: "cat-1",
+    category_id: "c1111111-1111-1111-1111-111111111111",
     brand: "Parle-G / Shakti",
     packaging: "Case of 96",
     pieces_per_case: 96,
@@ -137,11 +138,11 @@ const INITIAL_PRODUCTS: Product[] = [
     active_scheme: INITIAL_SCHEMES[0],
   },
   {
-    id: "p2222222-2222-2222-2222-222222222222",
+    id: "b2222222-2222-2222-2222-222222222222",
     sku: "SKU-DT-1KG",
     name: "Detergent powder 1 kg",
     description: "Deep clean formula with active enzyme technology for tough stains and bright whites.",
-    category_id: "cat-2",
+    category_id: "c2222222-2222-2222-2222-222222222222",
     brand: "Safed Shine",
     packaging: "Case of 20",
     pieces_per_case: 20,
@@ -155,11 +156,11 @@ const INITIAL_PRODUCTS: Product[] = [
     active_scheme: INITIAL_SCHEMES[1],
   },
   {
-    id: "p3333333-3333-3333-3333-333333333333",
+    id: "b3333333-3333-3333-3333-333333333333",
     sku: "SKU-TE-250",
     name: "Tea leaf 250 g",
     description: "Rich Assam CTC tea blend delivering strong taste and deep aroma for morning kadak chai.",
-    category_id: "cat-3",
+    category_id: "c3333333-3333-3333-3333-333333333333",
     brand: "Taj Mahal / Bandhan",
     packaging: "Case of 40",
     pieces_per_case: 40,
@@ -172,11 +173,11 @@ const INITIAL_PRODUCTS: Product[] = [
     image_url: "/images/products/tea-leaf.jpg",
   },
   {
-    id: "p4444444-4444-4444-4444-444444444444",
+    id: "b4444444-4444-4444-4444-444444444444",
     sku: "SKU-OL-1LT",
     name: "Kacchi Ghani Mustard Oil 1 L",
     description: "Cold pressed pungent mustard oil ideal for traditional cooking, rich in natural antioxidants.",
-    category_id: "cat-4",
+    category_id: "c4444444-4444-4444-4444-444444444444",
     brand: "Kisan Shuddh",
     packaging: "Case of 12",
     pieces_per_case: 12,
@@ -189,11 +190,11 @@ const INITIAL_PRODUCTS: Product[] = [
     image_url: "/images/products/mustard-oil.jpg",
   },
   {
-    id: "p5555555-5555-5555-5555-555555555555",
+    id: "b5555555-5555-5555-5555-555555555555",
     sku: "SKU-SP-100",
     name: "Bathing Soap Neem & Tulsi 100 g",
     description: "Grade 1 toilet soap with 76% TFM for deep skin protection and pleasant fragrance.",
-    category_id: "cat-2",
+    category_id: "c2222222-2222-2222-2222-222222222222",
     brand: "Ayur Touch",
     packaging: "Case of 72",
     pieces_per_case: 72,
@@ -212,7 +213,7 @@ const INITIAL_ALIASES: RetailerProductAlias[] = [
     id: "al-1",
     retailer_id: "aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     alias: "biscuit chhota",
-    product_id: "p1111111-1111-1111-1111-111111111111",
+    product_id: "b1111111-1111-1111-1111-111111111111",
     confidence: 1.0,
     created_at: "2026-01-01",
     updated_at: "2026-01-01",
@@ -221,7 +222,7 @@ const INITIAL_ALIASES: RetailerProductAlias[] = [
     id: "al-2",
     retailer_id: "aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     alias: "washing powder 1 kilo",
-    product_id: "p2222222-2222-2222-2222-222222222222",
+    product_id: "b2222222-2222-2222-2222-222222222222",
     confidence: 1.0,
     created_at: "2026-01-01",
     updated_at: "2026-01-01",
@@ -230,7 +231,7 @@ const INITIAL_ALIASES: RetailerProductAlias[] = [
     id: "al-3",
     retailer_id: "aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     alias: "chai patti 250 wala",
-    product_id: "p3333333-3333-3333-3333-333333333333",
+    product_id: "b3333333-3333-3333-3333-333333333333",
     confidence: 1.0,
     created_at: "2026-01-01",
     updated_at: "2026-01-01",
@@ -239,7 +240,7 @@ const INITIAL_ALIASES: RetailerProductAlias[] = [
 
 const INITIAL_ORDERS: Order[] = [
   {
-    id: "o1111111-1111-1111-1111-111111111111",
+    id: "d1111111-1111-1111-1111-111111111111",
     order_number: "ORD-202611-001",
     retailer_id: "aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     status: "confirmed",
@@ -258,8 +259,8 @@ const INITIAL_ORDERS: Order[] = [
     items: [
       {
         id: "oi-1",
-        order_id: "o1111111-1111-1111-1111-111111111111",
-        product_id: "p1111111-1111-1111-1111-111111111111",
+        order_id: "d1111111-1111-1111-1111-111111111111",
+        product_id: "b1111111-1111-1111-1111-111111111111",
         quantity: 10,
         free_quantity: 1,
         unit_price: 8.1,
@@ -269,13 +270,13 @@ const INITIAL_ORDERS: Order[] = [
         gst_rate: 18.0,
         gst_amount: 14.58,
         line_total: 95.58,
-        scheme_id: "s1111111-1111-1111-1111-111111111111",
+        scheme_id: "e1111111-1111-1111-1111-111111111111",
         product: INITIAL_PRODUCTS[0],
       },
     ],
   },
   {
-    id: "o2222222-2222-2222-2222-222222222222",
+    id: "d2222222-2222-2222-2222-222222222222",
     order_number: "ORD-202611-002",
     retailer_id: "aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     status: "pending_review",
@@ -294,8 +295,8 @@ const INITIAL_ORDERS: Order[] = [
     items: [
       {
         id: "oi-2",
-        order_id: "o2222222-2222-2222-2222-222222222222",
-        product_id: "p2222222-2222-2222-2222-222222222222",
+        order_id: "d2222222-2222-2222-2222-222222222222",
+        product_id: "b2222222-2222-2222-2222-222222222222",
         quantity: 5,
         free_quantity: 0,
         unit_price: 101.5,
@@ -305,7 +306,7 @@ const INITIAL_ORDERS: Order[] = [
         gst_rate: 18.0,
         gst_amount: 88.61,
         line_total: 580.88,
-        scheme_id: "s2222222-2222-2222-2222-222222222222",
+        scheme_id: "e2222222-2222-2222-2222-222222222222",
         product: INITIAL_PRODUCTS[1],
       },
     ],
@@ -388,22 +389,89 @@ class InMemoryDB {
   }
 
   async getProducts(): Promise<Product[]> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .order("created_at", { ascending: true });
+        if (!error && data && data.length > 0) {
+          return data as Product[];
+        }
+      } catch (e) {
+        console.warn("Supabase getProducts fallback:", e);
+      }
+    }
     return this.products;
   }
 
   async getSchemes(): Promise<Scheme[]> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from("schemes")
+          .select("*")
+          .eq("is_active", true);
+        if (!error && data && data.length > 0) {
+          return data as Scheme[];
+        }
+      } catch (e) {
+        console.warn("Supabase getSchemes fallback:", e);
+      }
+    }
     return this.schemes;
   }
 
   async getRetailer(id: string): Promise<Retailer | undefined> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from("retailers")
+          .select("*")
+          .eq("id", id)
+          .maybeSingle();
+        if (!error && data) {
+          return data as Retailer;
+        }
+      } catch (e) {
+        console.warn("Supabase getRetailer fallback:", e);
+      }
+    }
     return this.retailers.find((r) => r.id === id);
   }
 
   async getRetailerByProfileId(profileId: string): Promise<Retailer | undefined> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from("retailers")
+          .select("*")
+          .eq("profile_id", profileId)
+          .maybeSingle();
+        if (!error && data) {
+          return data as Retailer;
+        }
+      } catch (e) {
+        console.warn("Supabase getRetailerByProfileId fallback:", e);
+      }
+    }
     return this.retailers.find((r) => r.profile_id === profileId);
   }
 
   async getRetailerAliases(retailerId: string): Promise<RetailerProductAlias[]> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from("retailer_product_aliases")
+          .select("*")
+          .eq("retailer_id", retailerId);
+        if (!error && data && data.length > 0) {
+          return data as RetailerProductAlias[];
+        }
+      } catch (e) {
+        console.warn("Supabase getRetailerAliases fallback:", e);
+      }
+    }
     return this.aliases.filter((a) => a.retailer_id === retailerId);
   }
 
@@ -412,6 +480,30 @@ class InMemoryDB {
     alias: string,
     productId: string
   ): Promise<RetailerProductAlias> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from("retailer_product_aliases")
+          .upsert(
+            {
+              retailer_id: retailerId,
+              alias: alias.trim().toLowerCase(),
+              product_id: productId,
+              confidence: 1.0,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "retailer_id, alias" }
+          )
+          .select()
+          .maybeSingle();
+        if (!error && data) {
+          return data as RetailerProductAlias;
+        }
+      } catch (e) {
+        console.warn("Supabase addRetailerAlias fallback:", e);
+      }
+    }
+
     const existing = this.aliases.find(
       (a) => a.retailer_id === retailerId && a.alias.toLowerCase() === alias.toLowerCase().trim()
     );
@@ -437,6 +529,31 @@ class InMemoryDB {
   }
 
   async getOrders(filters?: { retailerId?: string; status?: OrderStatus }): Promise<Order[]> {
+    if (supabase) {
+      try {
+        let query = supabase
+          .from("orders")
+          .select(
+            "*, retailer:retailers(*), items:order_items(*, product:products(*)), corrections:order_corrections(*)"
+          )
+          .order("created_at", { ascending: false });
+
+        if (filters?.retailerId) {
+          query = query.eq("retailer_id", filters.retailerId);
+        }
+        if (filters?.status) {
+          query = query.eq("status", filters.status);
+        }
+
+        const { data, error } = await query;
+        if (!error && data) {
+          return data as Order[];
+        }
+      } catch (e) {
+        console.warn("Supabase getOrders fallback:", e);
+      }
+    }
+
     let result = [...this.orders];
     if (filters?.retailerId) {
       result = result.filter((o) => o.retailer_id === filters.retailerId);
@@ -444,13 +561,29 @@ class InMemoryDB {
     if (filters?.status) {
       result = result.filter((o) => o.status === filters.status);
     }
-    // Return newest first
     return result.sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
   }
 
   async getOrderById(id: string): Promise<Order | undefined> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from("orders")
+          .select(
+            "*, retailer:retailers(*), items:order_items(*, product:products(*)), corrections:order_corrections(*)"
+          )
+          .eq("id", id)
+          .maybeSingle();
+
+        if (!error && data) {
+          return data as Order;
+        }
+      } catch (e) {
+        console.warn("Supabase getOrderById fallback:", e);
+      }
+    }
     return this.orders.find((o) => o.id === id);
   }
 
@@ -458,17 +591,13 @@ class InMemoryDB {
     orderData: Omit<Order, "id" | "order_number" | "created_at" | "updated_at">,
     items: Omit<OrderItem, "id" | "order_id">[]
   ): Promise<Order> {
-    const orderId = `o-${Date.now()}`;
-    const orderNumber = `ORD-202611-${String(this.orders.length + 1).padStart(3, "0")}`;
-
     const retailer = await this.getRetailer(orderData.retailer_id);
 
     // Business Rule: Check Credit Limit
-    // If order total exceeds available credit -> status is placed On Hold
     const availableCredit = retailer
       ? retailer.credit_limit - retailer.outstanding_balance
       : 50000;
-    
+
     let initialStatus: OrderStatus = orderData.status ?? "pending_review";
     let creditHoldReason: string | undefined = undefined;
 
@@ -478,6 +607,86 @@ class InMemoryDB {
         2
       )} exceeds available credit ₹${availableCredit.toFixed(2)}. Requires Order Desk approval.`;
     }
+
+    if (supabase) {
+      try {
+        const existingOrders = await this.getOrders();
+        const orderNumber = `ORD-${new Date().toISOString().slice(0, 7).replace("-", "")}-${String(
+          existingOrders.length + 1
+        ).padStart(3, "0")}`;
+
+        const { data: orderRow, error: orderErr } = await supabase
+          .from("orders")
+          .insert({
+            order_number: orderNumber,
+            retailer_id: orderData.retailer_id,
+            status: initialStatus,
+            subtotal: orderData.subtotal,
+            scheme_discount_total: orderData.scheme_discount_total,
+            free_items_total_value: orderData.free_items_total_value,
+            taxable_amount: orderData.taxable_amount,
+            gst_total: orderData.gst_total,
+            grand_total: orderData.grand_total,
+            credit_limit_at_order: orderData.credit_limit_at_order,
+            outstanding_balance_at_order: orderData.outstanding_balance_at_order,
+            credit_hold_reason: creditHoldReason,
+            notes: orderData.notes,
+            source: orderData.source,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (!orderErr && orderRow) {
+          const itemsToInsert = items.map((it) => ({
+            order_id: orderRow.id,
+            product_id: it.product_id,
+            quantity: it.quantity,
+            free_quantity: it.free_quantity,
+            unit_price: it.unit_price,
+            discount_percentage: it.discount_percentage,
+            discount_amount: it.discount_amount,
+            taxable_amount: it.taxable_amount,
+            gst_rate: it.gst_rate,
+            gst_amount: it.gst_amount,
+            line_total: it.line_total,
+            scheme_id: it.scheme_id || null,
+          }));
+
+          await supabase.from("order_items").insert(itemsToInsert);
+
+          await this.recordAuditLog({
+            user_id: retailer?.profile_id,
+            action: "order_created",
+            entity_type: "order",
+            entity_id: orderRow.id,
+            details: {
+              order_number: orderNumber,
+              grand_total: orderRow.grand_total,
+              status: initialStatus,
+              source: orderRow.source,
+            },
+          });
+
+          if (initialStatus === "confirmed" && retailer) {
+            await supabase
+              .from("retailers")
+              .update({ outstanding_balance: retailer.outstanding_balance + orderRow.grand_total })
+              .eq("id", retailer.id);
+          }
+
+          const savedOrder = await this.getOrderById(orderRow.id);
+          if (savedOrder) return savedOrder;
+        }
+      } catch (e) {
+        console.warn("Supabase createOrder fallback:", e);
+      }
+    }
+
+    // Local / In-Memory Fallback
+    const orderId = `o-${Date.now()}`;
+    const orderNumber = `ORD-202611-${String(this.orders.length + 1).padStart(3, "0")}`;
 
     const newOrderItems: OrderItem[] = items.map((it, idx) => ({
       ...it,
@@ -501,7 +710,6 @@ class InMemoryDB {
 
     this.orders.unshift(newOrder);
 
-    // Update retailer balance if confirmed
     if (retailer && initialStatus === "confirmed") {
       retailer.outstanding_balance += newOrder.grand_total;
     }
@@ -528,6 +736,66 @@ class InMemoryDB {
     reviewerId: string,
     reason?: string
   ): Promise<Order | null> {
+    if (supabase) {
+      try {
+        const oldOrder = await this.getOrderById(orderId);
+        const oldStatus = oldOrder ? oldOrder.status : "pending_review";
+
+        const { data: updatedRow, error: updateErr } = await supabase
+          .from("orders")
+          .update({
+            status: newStatus,
+            reviewed_by: reviewerId || "22222222-2222-2222-2222-222222222222",
+            reviewed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", orderId)
+          .select()
+          .maybeSingle();
+
+        if (!updateErr && updatedRow) {
+          await supabase.from("order_corrections").insert({
+            order_id: orderId,
+            corrected_by: reviewerId || "22222222-2222-2222-2222-222222222222",
+            action_type: `status_changed_to_${newStatus}`,
+            old_data: { status: oldStatus },
+            new_data: { status: newStatus },
+            reason: reason || `Status updated to ${newStatus} by Order Desk.`,
+            created_at: new Date().toISOString(),
+          });
+
+          await this.recordAuditLog({
+            user_id: reviewerId,
+            action: "order_status_update",
+            entity_type: "order",
+            entity_id: orderId,
+            details: { old_status: oldStatus, new_status: newStatus, reason },
+          });
+
+          if (newStatus === "confirmed" && oldStatus !== "confirmed") {
+            const retailer = await this.getRetailer(updatedRow.retailer_id);
+            if (retailer) {
+              await supabase
+                .from("retailers")
+                .update({ outstanding_balance: retailer.outstanding_balance + updatedRow.grand_total })
+                .eq("id", retailer.id);
+            }
+          }
+
+          const refreshed = await this.getOrderById(orderId);
+          if (refreshed) {
+            const memIdx = this.orders.findIndex((o) => o.id === orderId);
+            if (memIdx !== -1) {
+              this.orders[memIdx] = refreshed;
+            }
+            return refreshed;
+          }
+        }
+      } catch (e) {
+        console.warn("Supabase updateOrderStatus fallback:", e);
+      }
+    }
+
     const order = this.orders.find((o) => o.id === orderId);
     if (!order) return null;
 
@@ -566,6 +834,33 @@ class InMemoryDB {
   async recordAuditLog(
     log: Omit<AuditLog, "id" | "created_at">
   ): Promise<AuditLog> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from("audit_logs")
+          .insert({
+            user_id: log.user_id || null,
+            action: log.action,
+            entity_type: log.entity_type,
+            entity_id: log.entity_id || null,
+            details: log.details || null,
+            created_at: new Date().toISOString(),
+          })
+          .select()
+          .maybeSingle();
+
+        if (!error && data) {
+          return {
+            ...log,
+            id: data.id,
+            created_at: data.created_at,
+          };
+        }
+      } catch (e) {
+        console.warn("Supabase recordAuditLog fallback:", e);
+      }
+    }
+
     const audit: AuditLog = {
       ...log,
       id: `log-${Date.now()}`,
@@ -576,6 +871,35 @@ class InMemoryDB {
   }
 
   async getAuditLogs(orderId?: string): Promise<AuditLog[]> {
+    if (supabase) {
+      try {
+        let query = supabase
+          .from("audit_logs")
+          .select("*, user:profiles(full_name)")
+          .order("created_at", { ascending: false });
+
+        if (orderId) {
+          query = query.eq("entity_id", orderId);
+        }
+
+        const { data, error } = await query;
+        if (!error && data) {
+          return data.map((l: any) => ({
+            id: l.id,
+            user_id: l.user_id,
+            user_name: l.user?.full_name || "System / Vikram Patel",
+            action: l.action,
+            entity_type: l.entity_type,
+            entity_id: l.entity_id,
+            details: l.details,
+            created_at: l.created_at,
+          })) as AuditLog[];
+        }
+      } catch (e) {
+        console.warn("Supabase getAuditLogs fallback:", e);
+      }
+    }
+
     if (orderId) {
       return this.auditLogs.filter((l) => l.entity_id === orderId);
     }
@@ -583,12 +907,62 @@ class InMemoryDB {
   }
 
   async getExportHistory(): Promise<ExportHistoryRecord[]> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from("export_history")
+          .select("*, profile:profiles(full_name)")
+          .order("exported_at", { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          return data.map((e: any) => ({
+            id: e.id,
+            file_name: e.file_name,
+            exported_by_name: e.profile?.full_name || "Vikram Patel",
+            order_count: e.order_count,
+            total_value: Number(e.total_value),
+            exported_at: e.exported_at,
+          })) as ExportHistoryRecord[];
+        }
+      } catch (e) {
+        console.warn("Supabase getExportHistory fallback:", e);
+      }
+    }
     return this.exportHistory;
   }
 
   async recordExport(
     record: Omit<ExportHistoryRecord, "id" | "exported_at">
   ): Promise<ExportHistoryRecord> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from("export_history")
+          .insert({
+            exported_by: "22222222-2222-2222-2222-222222222222",
+            file_name: record.file_name,
+            order_count: record.order_count,
+            total_value: record.total_value,
+            exported_at: new Date().toISOString(),
+          })
+          .select("*, profile:profiles(full_name)")
+          .maybeSingle();
+
+        if (!error && data) {
+          return {
+            id: data.id,
+            file_name: data.file_name,
+            exported_by_name: data.profile?.full_name || record.exported_by_name,
+            order_count: data.order_count,
+            total_value: Number(data.total_value),
+            exported_at: data.exported_at,
+          };
+        }
+      } catch (e) {
+        console.warn("Supabase recordExport fallback:", e);
+      }
+    }
+
     const newRecord: ExportHistoryRecord = {
       ...record,
       id: `exp-${Date.now()}`,

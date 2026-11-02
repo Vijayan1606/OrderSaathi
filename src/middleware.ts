@@ -36,6 +36,12 @@ export async function middleware(request: NextRequest) {
   if (pathname === "/order-desk/export") {
     return NextResponse.redirect(new URL("/desk/exports", request.url));
   }
+  if (pathname === "/desk") {
+    return NextResponse.redirect(new URL("/desk/dashboard", request.url));
+  }
+  if (pathname === "/retailer") {
+    return NextResponse.redirect(new URL("/retailer/dashboard", request.url));
+  }
 
   // Refresh Supabase SSR session and retrieve authenticated profile role
   const { response, sessionUser, userRole } = await updateSession(request);
@@ -47,8 +53,8 @@ export async function middleware(request: NextRequest) {
     pathname === "/desk/forgot-password" ||
     pathname.startsWith("/auth/");
 
-  const isRetailerRoute = pathname.startsWith("/retailer/");
-  const isDeskRoute = pathname.startsWith("/desk/");
+  const isRetailerRoute = pathname.startsWith("/retailer/") && !isPublicAuthRoute;
+  const isDeskRoute = pathname.startsWith("/desk/") && !isPublicAuthRoute;
 
   // 1. Root page "/" redirection
   if (pathname === "/") {

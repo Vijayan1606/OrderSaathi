@@ -33,7 +33,8 @@ export default function OrderHistoryPage() {
   useEffect(() => {
     async function loadOrders() {
       try {
-        const res = await fetch("/api/orders?retailer_id=" + (retailer?.id || ""));
+        const url = retailer?.id ? `/api/orders?retailer_id=${retailer.id}` : "/api/orders";
+        const res = await fetch(url);
         const json = await res.json();
         if (json.success) {
           setOrders(json.orders);

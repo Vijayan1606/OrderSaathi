@@ -1,6 +1,65 @@
 -- Seed Data for OrderSaathi
 -- Contains the exact brief-required catalogue items, realistic Jabalpur kirana shops, and demo profiles
 
+-- Ensure pgcrypto extension is available for password encryption
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- 0. Seed auth.users records first to satisfy foreign key constraint on public.profiles(id)
+INSERT INTO auth.users (
+  id,
+  instance_id,
+  aud,
+  role,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  created_at,
+  updated_at
+)
+VALUES 
+  (
+    '11111111-1111-1111-1111-111111111111',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
+    'authenticated',
+    'retailer@ordersaathi.demo',
+    crypt('OrderSaathi@Retailer2026', gen_salt('bf')),
+    NOW(),
+    '{"provider":"email","providers":["email"]}',
+    '{"full_name":"Rajesh Sharma"}',
+    NOW(),
+    NOW()
+  ),
+  (
+    '22222222-2222-2222-2222-222222222222',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
+    'authenticated',
+    'desk@ordersaathi.demo',
+    crypt('OrderSaathi@Desk2026', gen_salt('bf')),
+    NOW(),
+    '{"provider":"email","providers":["email"]}',
+    '{"full_name":"Vikram Patel"}',
+    NOW(),
+    NOW()
+  ),
+  (
+    '33333333-3333-3333-3333-333333333333',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
+    'authenticated',
+    'sharda@ordersaathi.demo',
+    crypt('OrderSaathi@Retailer2026', gen_salt('bf')),
+    NOW(),
+    '{"provider":"email","providers":["email"]}',
+    '{"full_name":"Sunil Kumar Agrawal"}',
+    NOW(),
+    NOW()
+  )
+ON CONFLICT (id) DO NOTHING;
+
 -- 1. Profiles for Demo
 -- Retailer Demo Account & Order Desk Demo Account
 INSERT INTO public.profiles (id, email, full_name, role, phone, mobile_number, is_active)
@@ -26,14 +85,14 @@ VALUES
   ('c4444444-4444-4444-4444-444444444444', 'Staples & Edible Oils', 'staples', 'Packaged mustard oil, refined oils, and daily essentials', 4)
 ON CONFLICT (id) DO NOTHING;
 
--- 4. Products (Including the Mandatory Brief Products)
+-- 4. Products (Valid Hexadecimal UUIDs)
 -- Product 1: Glucose biscuit 75 g (SKU-BS-075)
 -- Product 2: Detergent powder 1 kg (SKU-DT-1KG)
 -- Product 3: Tea leaf 250 g (SKU-TE-250)
 INSERT INTO public.products (id, sku, name, description, category_id, brand, packaging, pieces_per_case, unit, dealer_price, mrp, stock_cases, is_active, gst_rate, image_url)
 VALUES
   (
-    'p1111111-1111-1111-1111-111111111111',
+    'b1111111-1111-1111-1111-111111111111',
     'SKU-BS-075',
     'Glucose biscuit 75 g',
     'High energy glucose biscuits fortified with wheat and milk. Fast moving daily staple.',
@@ -50,7 +109,7 @@ VALUES
     '/images/products/glucose-biscuit.jpg'
   ),
   (
-    'p2222222-2222-2222-2222-222222222222',
+    'b2222222-2222-2222-2222-222222222222',
     'SKU-DT-1KG',
     'Detergent powder 1 kg',
     'Deep clean formula with active enzyme technology for tough stains and bright whites.',
@@ -67,7 +126,7 @@ VALUES
     '/images/products/detergent-powder.jpg'
   ),
   (
-    'p3333333-3333-3333-3333-333333333333',
+    'b3333333-3333-3333-3333-333333333333',
     'SKU-TE-250',
     'Tea leaf 250 g',
     'Rich Assam CTC tea blend delivering strong taste and deep aroma for morning kadak chai.',
@@ -84,7 +143,7 @@ VALUES
     '/images/products/tea-leaf.jpg'
   ),
   (
-    'p4444444-4444-4444-4444-444444444444',
+    'b4444444-4444-4444-4444-444444444444',
     'SKU-OL-1LT',
     'Kacchi Ghani Mustard Oil 1 L',
     'Cold pressed pungent mustard oil ideal for traditional cooking, rich in natural antioxidants.',
@@ -101,7 +160,7 @@ VALUES
     '/images/products/mustard-oil.jpg'
   ),
   (
-    'p5555555-5555-5555-5555-555555555555',
+    'b5555555-5555-5555-5555-555555555555',
     'SKU-SP-100',
     'Bathing Soap Neem & Tulsi 100 g',
     'Grade 1 toilet soap with 76% TFM for deep skin protection and pleasant fragrance.',
@@ -125,11 +184,11 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.schemes (id, name, description, scheme_type, eligible_product_ids, min_quantity, free_quantity, discount_percentage, start_date, end_date, is_active)
 VALUES
   (
-    's1111111-1111-1111-1111-111111111111',
+    'e1111111-1111-1111-1111-111111111111',
     'Buy 10 Cases Get 1 Free',
     'Order 10 or more cases of Glucose biscuit 75 g and get 1 free case for every 10 cases ordered.',
     'buy_x_get_y',
-    ARRAY['p1111111-1111-1111-1111-111111111111']::UUID[],
+    ARRAY['b1111111-1111-1111-1111-111111111111']::UUID[],
     10,
     1,
     0.00,
@@ -138,11 +197,11 @@ VALUES
     TRUE
   ),
   (
-    's2222222-2222-2222-2222-222222222222',
+    'e2222222-2222-2222-2222-222222222222',
     'Bulk Slab Discount: 3% Off 5+ Cases',
     'Purchase 5 or more cases of Detergent powder 1 kg to receive an instant 3% trade discount on the total item value.',
     'slab_discount',
-    ARRAY['p2222222-2222-2222-2222-222222222222']::UUID[],
+    ARRAY['b2222222-2222-2222-2222-222222222222']::UUID[],
     5,
     0,
     3.00,
@@ -155,13 +214,13 @@ ON CONFLICT (id) DO NOTHING;
 -- 6. Retailer Product Aliases (Common Hinglish terms spoken in Jabalpur/MP kirana trade)
 INSERT INTO public.retailer_product_aliases (retailer_id, alias, product_id, confidence)
 VALUES
-  ('aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'biscuit chhota', 'p1111111-1111-1111-1111-111111111111', 1.00),
-  ('aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'glucose biscuit', 'p1111111-1111-1111-1111-111111111111', 1.00),
-  ('aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'washing powder 1 kilo', 'p2222222-2222-2222-2222-222222222222', 1.00),
-  ('aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'detergent 1kg', 'p2222222-2222-2222-2222-222222222222', 1.00),
-  ('aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'chai patti 250 wala', 'p3333333-3333-3333-3333-333333333333', 1.00),
-  ('aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'chai patti', 'p3333333-3333-3333-3333-333333333333', 0.95),
-  ('aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'sarso tel 1 litre', 'p4444444-4444-4444-4444-444444444444', 1.00)
+  ('aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'biscuit chhota', 'b1111111-1111-1111-1111-111111111111', 1.00),
+  ('aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'glucose biscuit', 'b1111111-1111-1111-1111-111111111111', 1.00),
+  ('aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'washing powder 1 kilo', 'b2222222-2222-2222-2222-222222222222', 1.00),
+  ('aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'detergent 1kg', 'b2222222-2222-2222-2222-222222222222', 1.00),
+  ('aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'chai patti 250 wala', 'b3333333-3333-3333-3333-333333333333', 1.00),
+  ('aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'chai patti', 'b3333333-3333-3333-3333-333333333333', 0.95),
+  ('aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'sarso tel 1 litre', 'b4444444-4444-4444-4444-444444444444', 1.00)
 ON CONFLICT DO NOTHING;
 
 -- 7. Sample Initial Orders
@@ -172,7 +231,7 @@ INSERT INTO public.orders (
 )
 VALUES
   (
-    'o1111111-1111-1111-1111-111111111111',
+    'd1111111-1111-1111-1111-111111111111',
     'ORD-202611-001',
     'aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
     'confirmed',
@@ -188,7 +247,7 @@ VALUES
     NOW() - INTERVAL '2 days'
   ),
   (
-    'o2222222-2222-2222-2222-222222222222',
+    'd2222222-2222-2222-2222-222222222222',
     'ORD-202611-002',
     'aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
     'pending_review',

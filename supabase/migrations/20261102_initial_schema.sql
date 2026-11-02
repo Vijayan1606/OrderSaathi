@@ -223,6 +223,7 @@ CREATE INDEX IF NOT EXISTS idx_aliases_retailer_alias ON public.retailer_product
 -- ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.retailers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.product_categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.schemes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.retailer_product_prices ENABLE ROW LEVEL SECURITY;
@@ -260,7 +261,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- POLICIES:
 
--- Products & Schemes: readable by authenticated users
+-- Categories, Products & Schemes: readable by authenticated users
+CREATE POLICY "Categories readable by all authenticated"
+    ON public.product_categories FOR SELECT
+    TO authenticated
+    USING (TRUE);
+
 CREATE POLICY "Products readable by all authenticated"
     ON public.products FOR SELECT
     TO authenticated

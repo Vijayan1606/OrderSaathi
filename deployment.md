@@ -1,122 +1,163 @@
-# Deployment & Operations Guide: OrderSaathi
+# OrderSaathi — Deployment & Operational Runbook
 
-This guide provides end-to-end instructions for deploying and running OrderSaathi in both local development and cloud production environments.
-
----
-
-## 1. Prerequisites
-
-- **Node.js**: v18.18.0 or higher (Node v20/v22 LTS recommended)
-- **Package Manager**: npm v9+ or pnpm
-- **Git**: Installed and configured
-- **Database (Optional for production)**: Supabase PostgreSQL instance
+**Product Name:** OrderSaathi  
+**Tagline:** Smarter Orders. Faster Distribution.  
+**Category:** B2B FMCG Distribution Platform (Jabalpur, Madhya Pradesh)  
 
 ---
 
-## 2. Environment Configuration
+## 1. Quick Overview
 
-1. Copy the example environment template:
+OrderSaathi is a dual-portal B2B FMCG distribution platform purpose-built for FMCG distributors and kirana retail store owners in India. It replaces unstructured WhatsApp, paper notebook, and phone-call ordering with:
+* Real-time Kirana ordering with individualized dealer pricing and promotional schemes.
+* Hinglish conversational AI order extraction (detecting quantity units, pack sizes, and ambiguity).
+* Automated credit line checks (auto-hold for exceeded limits).
+* Order Desk review queue for order approval, line-item correction, and credit overrides.
+* One-click Tally-compatible sales voucher CSV export with audit logging.
+* Role-Based Access Control (RBAC) separating **Retailers** from **Order Desk** employees.
+
+---
+
+## 2. Prerequisites & Local Environment
+
+* **Node.js:** v18.18.0 or higher (v20+ recommended)
+* **Package Manager:** `npm` (v9 or v10)
+* **Git:** Installed
+* **Database:** Supabase PostgreSQL project (or local in-memory fallback)
+
+---
+
+## 3. Step-by-Step Local Setup
+
+### Step 1: Clone the Repository
 ```bash
-cp .env.example .env.local
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd OrderSaathi
 ```
 
-2. Environment Variables Reference:
-
-```env
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-
-# AI Provider Configuration (Optional: built-in Hinglish NLP runs out-of-the-box)
-AI_PROVIDER=gemini
-GEMINI_API_KEY=your-gemini-api-key
-
-# Application URL
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# Zero-Config Demo Mode: Enables built-in persistent store with Jabalpur seed data
-ENABLE_DEV_FALLBACK=true
-```
-
-> **Note on Zero-Config Execution:** If Supabase keys are not supplied, OrderSaathi seamlessly activates its built-in in-memory / persistent database seeded with the exact catalogue records and test retailers from the brief.
-
----
-
-## 3. Database Migration & Seeding (For Live Supabase)
-
-If deploying to a live Supabase project:
-
-1. **Execute Schema Migration:**
-   Open the Supabase SQL Editor and execute the contents of:
-   `supabase/migrations/20261102_initial_schema.sql`
-
-2. **Execute Seed Data:**
-   In the SQL Editor, execute the contents of:
-   `supabase/seed.sql`
-
-This creates all 15 relational tables, indexes, Row Level Security policies, and seeds the brief-mandated products:
-- `SKU-BS-075` (Glucose biscuit 75 g — ₹8.10 — Buy 10 Get 1 Free)
-- `SKU-DT-1KG` (Detergent powder 1 kg — ₹101.50 — 3% Off 5+ Cases)
-- `SKU-TE-250` (Tea leaf 250 g — ₹118.00 — 0 Stock / Out of Stock)
-
----
-
-## 4. Local Build & Startup
-
+### Step 2: Install Dependencies
 ```bash
-# 1. Install dependencies
 npm install
+```
 
-# 2. Run test suites to verify arithmetic & scheme logic
+### Step 3: Configure Environment Variables
+Copy the example environment file:
+```bash
+cp .env.example .env
+```
+Open `.env` in your text editor and configure the variable names (see Section 5 below).
+
+### Step 4: Run the Automated Test Suite
+Verify that all unit tests, schemes, exports, AI parsers, and RBAC security rules pass:
+```bash
 npm test
+```
+*Expected result:* 25 passing unit tests across 5 test suites.
 
-# 3. Create production build
+### Step 5: Start the Development Server
+```bash
+npm run dev
+```
+The application will launch on [http://localhost:3000](http://localhost:3000).
+
+### Step 6: (Alternative) Production Build & Run
+To run the optimized production build:
+```bash
 npm run build
-
-# 4. Start local production server
 npm start
 ```
 
-The application is now running at `http://localhost:3000`.
+---
+
+## 4. Demo Login Credentials for Reviewers
+
+OrderSaathi includes pre-seeded, realistic business accounts for immediate reviewer evaluation:
+
+### Portal 1: FMCG Order Desk (Distributor Staff)
+* **Access URL:** [http://localhost:3000/desk/login](http://localhost:3000/desk/login)
+* **Email:** `desk@ordersaathi.demo`
+* **Password:** `OrderSaathi@Desk2026`
+* **Assigned Role:** `order_desk`
+* **User Profile:** Vikram Patel (Senior Order Desk Operator)
+* **Workflows to test:**
+  * Review live incoming Kirana orders in the review queue.
+  * Filter orders by status (*Pending Review*, *On Hold*, *Confirmed*).
+  * Approve / Confirm orders and review line items.
+  * Resolve credit-related holds with documented reasons.
+  * Download Tally-compatible sales voucher CSV export.
+  * Inspect the immutable PostgreSQL audit trail.
+
+### Portal 2: Kirana Retailer Portal
+* **Access URL:** [http://localhost:3000/retailer/login](http://localhost:3000/retailer/login)
+* **Registered Mobile Number:** `+91 98261 12345`
+* **Verification OTP:** `123456` *(Pre-populated / displayed on-screen in demo review mode)*
+* **Assigned Role:** `retailer`
+* **Store Profile:** Mahakaushal Kirana Store (Proprietor: Rajesh Sharma, Lordganj Main Market, Jabalpur)
+* **Workflows to test:**
+  * Browse FMCG catalogue with live stock cases and individual dealer pricing.
+  * Add products to cart and see promotional scheme discounts applied automatically.
+  * Test AI Conversational Order Capture with natural voice or Hinglish Kirana text.
+  * Submit orders and verify automatic credit-limit validation.
+  * View past order history and repeat orders with 1-click.
 
 ---
 
-## 5. Demo Personas & Authentication Credentials
+## 5. Required Environment Variables
 
-The application implements full Supabase Phone and Email authentication with documented demo test credentials:
+Below are the required environment variable names. **Never commit actual secret values to the repository.**
 
-### A. Retailer Portal (Mobile Phone + OTP)
-- **Login URL:** `/retailer/login` (or `/login`)
-- **Registered Mobile:** `+91 98261 12345` (or `9826112345`)
-- **Test OTP Code:** `123456`
-- **Shopkeeper:** Rajesh Sharma — *Mahakaushal Kirana Store* (Lordganj, Jabalpur)
-- **Credit Line:** ₹75,000.00 (Available: ₹60,750.00)
-- **Target Dashboard:** `/retailer/dashboard`
+```env
+# Supabase Database & Auth Configuration
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
 
-### B. Order Desk Portal (Email + Password)
-- **Login URL:** `/desk/login`
-- **Employee Email:** `desk@ordersaathi.demo`
-- **Password:** `OrderSaathi@Desk2026`
-- **Desk Agent:** Vikram Patel — *Jabalpur FMCG Operations Control Desk*
-- **Target Dashboard:** `/desk/dashboard`
+# AI Provider Configuration
+# Supported providers: gemini, openai, anthropic
+AI_PROVIDER
+GEMINI_API_KEY
+OPENAI_API_KEY
 
-> **Security Guardrails:**
-> - Retailer accounts cannot access `/desk/*` operations (blocked at middleware and API).
-> - Order Desk staff accounts cannot place orders as retailers.
-> - Unauthenticated requests to protected pages are redirected to the respective login portal.
-> - Role switching is completely removed from public view; role identity is sourced from verified database profiles.
+# Application Base URL
+NEXT_PUBLIC_APP_URL
 
+# Development / Offline Fallback Mode
+ENABLE_DEV_FALLBACK
+```
 
 ---
 
-## 6. Vercel Production Deployment
+## 6. Cloud Deployment Architecture (Vercel & Supabase)
 
-To deploy OrderSaathi to Vercel:
+OrderSaathi is architected for cloud-native deployment:
 
-1. Push your repository to GitHub.
-2. Log into [vercel.com](https://vercel.com) and click **"Add New Project"**.
-3. Import the `OrderSaathi` repository.
-4. Set the Build Command to `npm run build` and Output Directory to `.next`.
-5. In **Environment Variables**, add the keys defined in `.env.example`.
-6. Click **Deploy**.
+1. **Frontend & Serverless Route Handlers:** Hosted on **Vercel** with Next.js App Router edge middleware and Node.js serverless functions.
+2. **Database & Storage:** Hosted on **Supabase** (PostgreSQL 15 with Row Level Security, indexing, foreign keys, and triggers).
+3. **Continuous Deployment (CI/CD):**
+   * Pushes to the `main` branch automatically trigger Vitest unit tests.
+   * On passing tests, Vercel initiates an optimized production build (`next build`).
+   * Environment variables are injected through Vercel Project Settings.
+
+---
+
+## 7. Database Initialization & Seeding
+
+If deploying to a fresh Supabase project:
+1. Open your Supabase SQL Editor.
+2. Execute `supabase/migrations/20261102_initial_schema.sql` to establish tables, constraints, indexes, and RLS policies.
+3. Execute `supabase/seed.sql` to populate initial FMCG categories, products, schemes, retailers, aliases, and sample orders.
+
+---
+
+## 8. Verification & Sanity Checklist
+
+| Workflow | Path | Success Criteria |
+| :--- | :--- | :--- |
+| **Desk Sign-In** | `/desk/login` | Authenticates email & password, redirects to `/desk/dashboard`. |
+| **Retailer Sign-In** | `/retailer/login` | Validates mobile, verifies 6-digit OTP, redirects to `/retailer/dashboard`. |
+| **RBAC Isolation** | `/desk/dashboard` | Unauthenticated visits redirect to `/desk/login`; Retailers blocked from `/desk`. |
+| **AI Order Parsing** | `/retailer/ai-order` | HinglishKirana voice/text translates into structured SKU matches with quantity disambiguation. |
+| **Scheme Recalculation** | `/retailer/cart` | Free cases (Buy 10 Get 1) and slab discounts (3% off 5+ cases) calculate accurately. |
+| **Credit Hold Engine** | `/retailer/cart` | Orders exceeding ₹60,750 available balance trigger automatic `on_hold` status. |
+| **Order Confirmation** | `/desk/orders` | Desk approval writes to Supabase, updates retailer balance, and records in `audit_logs`. |
+| **Tally CSV Export** | `/desk/exports` | Downloads standard Tally voucher CSV with correct ledger and GST columns. |

@@ -29,7 +29,7 @@ describe("Order Workflow & Credit Limit Operations", () => {
 
     const newOrder = await db.createOrder(orderData, [
       {
-        product_id: "p1111111-1111-1111-1111-111111111111",
+        product_id: "b1111111-1111-1111-1111-111111111111",
         quantity: 1000,
         free_quantity: 0,
         unit_price: 70.0,
@@ -72,7 +72,7 @@ describe("Order Workflow & Credit Limit Operations", () => {
   it("Saves and learns retailer-specific aliases for future AI matching", async () => {
     const retailerId = "aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
     const newAlias = "chhota biskut parla";
-    const productId = "p1111111-1111-1111-1111-111111111111";
+    const productId = "b1111111-1111-1111-1111-111111111111";
 
     const saved = await db.addRetailerAlias(retailerId, newAlias, productId);
     expect(saved.alias).toBe(newAlias);

@@ -21,7 +21,10 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-export default function OrderDeskReviewPage() {
+export default function OrderDeskReviewPage(props: {
+  params?: { id?: string };
+  searchParams?: { order_id?: string };
+}) {
   return (
     <React.Suspense
       fallback={
@@ -32,14 +35,14 @@ export default function OrderDeskReviewPage() {
         </div>
       }
     >
-      <OrderDeskReviewContent />
+      <OrderDeskReviewContent targetOrderId={props.params?.id || props.searchParams?.order_id} />
     </React.Suspense>
   );
 }
 
-function OrderDeskReviewContent() {
+function OrderDeskReviewContent({ targetOrderId }: { targetOrderId?: string }) {
   const searchParams = useSearchParams();
-  const highlightedOrderId = searchParams.get("order_id");
+  const highlightedOrderId = targetOrderId || searchParams.get("order_id");
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);

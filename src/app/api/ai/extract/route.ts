@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "@/lib/db";
+import { db, supabase } from "@/lib/db";
 import { extractOrderFromText } from "@/lib/ai/extractor";
 
 const RequestSchema = z.object({
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const retailerId = validated.retailer_id || "aa111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
     const aliases = await db.getRetailerAliases(retailerId);
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY?.trim();
     const provider = process.env.AI_PROVIDER || "gemini";
 
     const extraction = await extractOrderFromText(
@@ -27,6 +27,21 @@ export async function POST(req: NextRequest) {
       apiKey,
       provider
     );
+
+    // Record in Supabase ai_extractions table if connected
+    if (supabase) {
+      try {
+        await supabase.from("ai_extractions").insert({
+          retailer_id: retailerId,
+          raw_input: validated.text,
+          extracted_data: extraction,
+          confidence_score: extraction.overall_confidence,
+          status: "pending_confirmation",
+        });
+      } catch (err) {
+        console.warn("Could not record ai_extraction in Supabase:", err);
+      }
+    }
 
     // Record AI extraction audit log
     await db.recordAuditLog({
