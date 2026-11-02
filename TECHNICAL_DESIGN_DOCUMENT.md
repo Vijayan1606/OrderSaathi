@@ -1,8 +1,8 @@
 # OrderSaathi — Technical Design Document (TDD)
 ## AI-Powered FMCG Distribution & Retailer Ordering Platform
 
-**Repository URL:** `https://github.com/vj-45/OrderSaathi`  
-**Live Production URL:** `http://localhost:3000` *(Local production build; deployable to Vercel)*  
+**Repository URL:** `https://github.com/Vijayan1606/OrderSaathi`  
+**Live Production URL:** `https://ordersaathi-delta.vercel.app/` *(Local production build; deployable to Vercel)*  
 **Author:** Product Engineering Team (Product Designer, Architect, AI Engineer, Full-Stack Lead)  
 **Target Market:** FMCG Distributors & Kirana Store Retailers (Jabalpur, Madhya Pradesh, India)  
 **Version:** 1.0.0 (Production Quality)  
